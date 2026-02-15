@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ITI Electrician Pro</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+
+    <style>
+        :root { --primary-grad: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%); --bg: #f1f5f9; --text-main: #0f172a; --accent: #3b82f6; --success: #10b981; --danger: #ef4444; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; user-select: none; }
+        body { margin: 0; font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); color: var(--text-main); height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
+        ::-webkit-scrollbar { width: 0px; background: transparent; }
+
+        /* HEADER & PROFILE */
+        .app-header {
+            padding: 40px 25px 30px; background: var(--primary-grad); color: white;
+            border-bottom-left-radius: 30px; border-bottom-right-radius: 30px;
+            box-shadow: 0 10px 30px rgba(79, 70, 229, 0.2); flex-shrink: 0;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .header-left h1 { font-family: 'Outfit', sans-serif; font-size: 1.5rem; font-weight: 700; margin: 0; }
+        .header-left p { font-size: 0.85rem; opacity: 0.9; margin: 5px 0 0 0; }
+        
+        .header-profile { display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.2); padding: 5px 10px 5px 5px; border-radius: 50px; cursor: pointer; }
+        .header-pic { width: 35px; height: 35px; border-radius: 50%; object-fit: cover; background: white; border: 2px solid rgba(255,255,255,0.5); }
+        .header-name { font-size: 0.85rem; font-weight: 600; color: white; max-width: 80px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+
+        /* SCREENS */
+        #topicScreen, #quizInterface, #resultView { width: 100%; height: 100%; display: none; flex-direction: column; }
+        #topicScreen { display: flex; overflow-y: auto; padding: 0 0 100px 0; }
+        
+        .topic-grid { padding: 20px; display: grid; grid-template-columns: 1fr; gap: 16px; }
+        .topic-card { background: white; padding: 20px; border-radius: 20px; display: flex; align-items: center; gap: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.03); cursor: pointer; animation: slideUp 0.4s ease backwards; }
+        .topic-icon { width: 50px; height: 50px; background: #eff6ff; color: var(--accent); border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* QUIZ */
+        #quizInterface { background: white; position: absolute; top: 0; z-index: 100; }
+        .quiz-header { padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9; }
+        .timer-badge { background: #eff6ff; color: var(--accent); padding: 6px 14px; border-radius: 20px; font-weight: 700; font-size: 0.9rem; }
+        .progress-bar { height: 4px; background: #f1f5f9; width: 100%; } .progress-fill { height: 100%; background: var(--primary-grad); width: 0%; transition: 0.3s; }
+        .quiz-content { flex: 1; overflow-y: auto; padding: 25px 20px; }
+        .option-item { background: white; border: 2px solid #e2e8f0; padding: 16px; border-radius: 16px; margin-bottom: 12px; cursor: pointer; display: flex; gap: 15px; align-items: center; }
+        .option-item.correct { border-color: var(--success); background: #ecfdf5; } 
+        .option-item.wrong { border-color: var(--danger); background: #fef2f2; }
+        .btn-action { width: 100%; padding: 16px; background: #e2e8f0; border: none; border-radius: 16px; font-weight: 700; font-size: 1rem; color: #94a3b8; margin-top: auto; }
+        .btn-action.ready { background: var(--primary-grad); color: white; box-shadow: 0 5px 20px rgba(79,70,229,0.3); cursor: pointer; }
+
+        /* RESULT PROFILE STYLE */
+        #resultView { background: #f8fafc; position: absolute; top:0; z-index: 150; padding: 20px; overflow-y: auto; }
+        #captureArea { background: white; border-radius: 25px; padding: 30px 20px; text-align: center; box-shadow: 0 10px 40px -10px rgba(0,0,0,0.1); margin-top: 20px; max-width: 450px; margin-left: auto; margin-right: auto; position: relative; overflow: hidden; }
+        
+        .res-profile-container { margin-bottom: 20px; }
+        .res-pic { width: 90px; height: 90px; border-radius: 50%; object-fit: cover; border: 4px solid #eff6ff; box-shadow: 0 5px 15px rgba(0,0,0,0.1); display: block; margin: 0 auto; background: white; }
+        .res-name { font-family: 'Outfit', sans-serif; font-size: 1.4rem; font-weight: 700; color: #1e293b; margin: 10px 0 5px; }
+        .res-badge { background: #ecfdf5; color: var(--success); padding: 4px 12px; border-radius: 50px; font-size: 0.8rem; font-weight: 600; display: inline-block; }
+
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 25px; }
+        .stat-box { background: #f8fafc; padding: 15px; border-radius: 15px; text-align: center; }
+        .stat-val { display: block; font-size: 1.2rem; font-weight: 700; color: #0f172a; }
+        .stat-lbl { font-size: 0.8rem; color: #64748b; font-weight: 600; }
+        
+        .result-actions { display: flex; gap: 10px; margin-top: 30px; max-width: 450px; margin-left: auto; margin-right: auto; padding-bottom: 30px; }
+        .btn-res { flex: 1; padding: 15px; border-radius: 14px; border: none; font-weight: 700; cursor: pointer; }
+    </style>
+</head>
+<body oncontextmenu="return false;">
+
+    <!-- TOPIC SCREEN -->
+    <div id="topicScreen">
+        <header class="app-header">
+            <div class="header-left">
+                <h1>ITI Pro</h1>
+                <p>Mock Test Series</p>
+            </div>
+            <!-- Profile from Login Page -->
+            <div class="header-profile" onclick="location.href='login.html'">
+                <img id="headProfileImg" class="header-pic" src="">
+                <span id="headStudentName" class="header-name">Student</span>
+            </div>
+        </header>
+        <div class="topic-grid" id="topicGrid"></div>
+    </div>
+
+    <!-- QUIZ INTERFACE -->
+    <div id="quizInterface">
+        <div class="quiz-header">
+            <button onclick="confirmExit()" style="border:none;background:none;font-size:1.2rem;color:#64748b;"><i class="fa-solid fa-xmark"></i></button>
+            <div class="timer-badge" id="timerBadge">60s</div>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" id="progressBar"></div></div>
+        <div class="quiz-content" id="quizContentBox">
+            <span style="color:var(--accent);font-weight:700;font-size:0.8rem;">QUESTION <span id="qIdx">1</span></span>
+            <h2 id="qText" style="margin-top:10px; color:#1e293b;">Loading...</h2>
+            <div id="optionsList" style="margin-top:20px;"></div>
+        </div>
+        <div style="padding:20px; border-top:1px solid #f1f5f9;">
+            <button class="btn-action" id="nextBtn" onclick="nextQuestion()">Skip</button>
+        </div>
+    </div>
+
+    <!-- RESULT SCREEN (With Profile Pic) -->
+    <div id="resultView">
+        <div id="captureArea">
+            <!-- Profile Section Added Here -->
+            <div class="res-profile-container">
+                <img id="resProfileImg" class="res-pic" src="">
+                <h3 id="resStudentName" class="res-name">Student Name</h3>
+                <span class="res-badge">Exam Completed</span>
+            </div>
+            
+            <div style="width:100%; height:1px; background:#f1f5f9; margin:15px 0;"></div>
+
+            <h2 style="margin:0; color:#475569; font-size:1rem;">Your Score</h2>
+            <div style="font-size:3rem; font-weight:800; color:var(--primary); font-family:'Outfit',sans-serif;">
+                <span id="resScore">0</span>%
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <span class="stat-val" style="color:var(--success)" id="resRight">0</span>
+                    <span class="stat-lbl">Correct</span>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-val" style="color:var(--danger)" id="resWrong">0</span>
+                    <span class="stat-lbl">Wrong</span>
+                </div>
+            </div>
+            <div style="margin-top:20px; font-size:0.75rem; color:#cbd5e1;">ITI Electrician Pro Result</div>
+        </div>
+
+        <div class="result-actions">
+            <button class="btn-res" style="background:#1e293b; color:white;" onclick="exitToTopics()">Home</button>
+            <button class="btn-res" style="background:var(--primary-grad); color:white;" onclick="shareResult()">Share Result</button>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. USER PROFILE LOADING ---
+        const studentName = localStorage.getItem('iti_student_name');
+        const studentPic = localStorage.getItem('iti_student_pic');
+
+        // अगर लॉगिन नहीं किया तो Login Page पर भेजो
+        if (!studentName) {
+            window.location.href = 'login.html';
+        }
+
+        // प्रोफाइल सेट करना
+        window.addEventListener('load', () => {
+            const defaultPic = "https://cdn-icons-png.flaticon.com/512/3135/3135715.png";
+            const picToUse = studentPic || defaultPic;
+
+            // Header Profile
+            document.getElementById('headStudentName').innerText = studentName;
+            document.getElementById('headProfileImg').src = picToUse;
+
+            // Result Profile
+            document.getElementById('resStudentName').innerText = studentName;
+            document.getElementById('resProfileImg').src = picToUse;
+
+            renderTopicGrid();
+        });
+
+        // --- 2. DATA & QUIZ LOGIC ---
+        const defaultTopics = [ { id: "safety", name: "Safety Practices", icon: "fa-helmet-safety" }, { id: "tools", name: "Hand Tools", icon: "fa-screwdriver-wrench" } ];
+        const defaultQs = { "safety": [{ t: "CO2 Extinguisher Color?", o: ["Blue","Black","Red"], a: 1 }], "tools": [{ t: "Screwdriver Material?", o: ["Iron","Steel","Copper"], a: 1 }] };
+
+        let topics = JSON.parse(localStorage.getItem('iti_topics')) || defaultTopics;
+        let qBank = JSON.parse(localStorage.getItem('iti_qbank')) || defaultQs;
+        let activeQs=[], currQ=0, score=0, timer, timeLeft=60;
+
+        function renderTopicGrid() {
+            const grid = document.getElementById('topicGrid');
+            topics.forEach((t, i) => {
+                let count = qBank[t.id] ? qBank[t.id].length : 0;
+                grid.innerHTML += `
+                <div class="topic-card" onclick="startQuiz('${t.id}')" style="animation-delay:${i*0.1}s">
+                    <div class="topic-icon"><i class="fa-solid ${t.icon}"></i></div>
+                    <div><h3 style="margin:0;font-size:1rem;">${t.name}</h3><span style="font-size:0.8rem;color:#94a3b8;">${count} Questions</span></div>
+                </div>`;
+            });
+        }
+
+        function startQuiz(id) {
+            qBank = JSON.parse(localStorage.getItem('iti_qbank')) || defaultQs; // Reload latest
+            if(qBank[id] && qBank[id].length>0) {
+                activeQs = qBank[id]; currQ=0; score=0;
+                document.getElementById('topicScreen').style.display='none';
+                document.getElementById('quizInterface').style.display='flex';
+                loadQ();
+            } else alert("No questions available.");
+        }
+
+        function loadQ() {
+            clearInterval(timer); timeLeft=60; document.getElementById('timerBadge').innerText="60s";
+            document.getElementById('progressBar').style.width = `${(currQ/activeQs.length)*100}%`;
+            
+            const q = activeQs[currQ];
+            document.getElementById('qIdx').innerText = currQ+1;
+            document.getElementById('qText').innerText = q.t;
+            
+            const list = document.getElementById('optionsList'); list.innerHTML='';
+            document.getElementById('nextBtn').innerText = "Skip";
+            document.getElementById('nextBtn').className = "btn-action";
+            document.getElementById('nextBtn').onclick = nextQuestion;
+
+            q.o.forEach((opt, i) => {
+                list.innerHTML += `<div class="option-item" onclick="check(${i}, this)">
+                    <div style="width:25px;height:25px;border-radius:50%;border:2px solid #cbd5e1;display:flex;align-items:center;justify-content:center;font-weight:700;">${String.fromCharCode(65+i)}</div>
+                    <span>${opt}</span>
+                </div>`;
+            });
+            timer = setInterval(()=>{ timeLeft--; document.getElementById('timerBadge').innerText=timeLeft+"s"; if(timeLeft<=0) nextQuestion(); }, 1000);
+        }
+
+        function check(idx, el) {
+            if(document.querySelector('.correct')) return;
+            clearInterval(timer);
+            const correct = activeQs[currQ].a;
+            if(idx===correct) { el.classList.add('correct'); score++; }
+            else { el.classList.add('wrong'); document.querySelectorAll('.option-item')[correct].classList.add('correct'); }
+            
+            const btn = document.getElementById('nextBtn');
+            btn.innerText = (currQ===activeQs.length-1)?"Finish":"Next";
+            btn.className = "btn-action ready";
+        }
+
+        function nextQuestion() {
+            if(currQ < activeQs.length-1) { currQ++; loadQ(); } else showResult();
+        }
+
+        function showResult() {
+            document.getElementById('quizInterface').style.display='none';
+            document.getElementById('resultView').style.display='flex'; // यहाँ प्रोफाइल अपने आप लोड होगी
+            
+            const pct = ((score/activeQs.length)*100).toFixed(0);
+            document.getElementById('resScore').innerText = pct;
+            document.getElementById('resRight').innerText = score;
+            document.getElementById('resWrong').innerText = activeQs.length - score;
+            
+            confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+        }
+
+        function shareResult() {
+            const btn = document.querySelector('.btn-res:last-child');
+            const oldText = btn.innerText; btn.innerText = "Generating...";
+            html2canvas(document.getElementById('captureArea'), { scale: 2 }).then(canvas => {
+                canvas.toBlob(blob => {
+                    const file = new File([blob], "result.png", { type: "image/png" });
+                    if(navigator.share) navigator.share({ files: [file] });
+                    else { const a = document.createElement('a'); a.href=canvas.toDataURL(); a.download="Result.png"; a.click(); }
+                    btn.innerText = oldText;
+                });
+            });
+        }
+
+        function exitToTopics() { location.reload(); }
+        function confirmExit() { if(confirm("Quit?")) exitToTopics(); }
+    </script>
+</body>
+</html>
